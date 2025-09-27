@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Map with Markers, Shapes & Lines</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            /*font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;*/
+            margin: 0;
+            padding: 0;
+        }
+
+        h2, p {
+            margin: 10px;
+        }
+
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #38444d;
+        }
+
+        li {
+            float: left;
+        }
+
+        li a, .dropbtn {
+            display: inline-block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+            li a:hover, .dropdown:hover .dropbtn {
+              background-color: red;
+            }
+
+            li.dropdown {
+              display: inline-block;
+            }
+
+            .dropdown-content {
+              display: none;
+              position: absolute;
+              background-color: #f9f9f9;
+              min-width: 160px;
+              box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+              z-index: 1;
+            }
+
+            .dropdown-content a {
+              color: black;
+              padding: 12px 16px;
+              text-decoration: none;
+              display: block;
+              text-align: left;
+            }
+
+            .dropdown-content a:hover {
+                background-color: #3bc01a;
+            }
+
+            .dropdown:hover .dropdown-content {
+              display: block;
+            }
+
+            img {
+              float: right;
+              padding-right: 10px;
+            }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 25px;
+            height: fit-content;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 20px;
+            color: #495057;
+            font-size: 1.2em;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .file-upload input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-upload-label {
+            display: block;
+            padding: 12px 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .file-upload-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .upload-info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .controls-section {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .stats {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .stats div {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .map-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .map-header {
+            padding: 20px;
+            background: linear-gradient(90deg, #f8f9fa, #e9ecef);
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #map {
+            height: 650px;
+            width: 100%;
+            position: relative;
+        }
+
+        .leaflet-popup-content-wrapper {
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .popup-content {
+            min-width: 200px;
+        }
+
+        .popup-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .popup-btn {
+            padding: 6px 12px;
+            margin-right: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s;
+        }
+
+        .popup-btn-save {
+            background: #28a745;
+            color: white;
+        }
+
+        .popup-btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .popup-btn:hover {
+            opacity: 0.8;
+        }
+
+        .shape-type-selector {
+            margin-bottom: 15px;
+        }
+
+        .shape-type-selector select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .color-picker input[type="color"] {
+            width: 40px;
+            height: 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .color-picker label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .click-instruction {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.95);
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 14px;
+            color: #495057;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .sidebar {
+                order: 2;
+            }
+
+            .map-container {
+                order: 1;
+            }
+
+            #map {
+                height: 500px;
+            }
+        }
+
+        .csv-preview {
+            margin-top: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .success-message {
+            background: #d1edff;
+            color: #004085;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-container">   
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li class="dropdown">
+                <a href="Portfolio.html" class="dropbtn">Portfolio</a>
+                <div class="dropdown-content">
+                    <a href="Portfolio_One.html">World Trade</a>
+                    <a href="Portfolio_Two.html">Big Map</a>
+                    <a href="Portfolio_Three.html">Big Map2</a>
+                </div>
+            </li>
+            <li><a href="Blank.html">Blank of the Day</a></li>
+            <li><a href="Contact.html">Contact</a></li>
+            <img src="C:\Users\caleb\Desktop\ResearchDevelopment\02-Code\05-WebApps\site-content\images\CSElectronicsLogo_Transparent.jpg" alt="homeImage"><a href="index.html" style="width:50px;height:50px;"></a></a></img>
+        </ul>
+    </div>
+    <div class="bod">
+        <h1>World Trade</h1>
+        <p>This page displays current Tariffs, Duties and Excise Taxes on all products imported.  <br>It will then show the cost changes for different products over time.  </p>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>Interactive Map with Shapes & Lines</h1>
+            <p>Add markers by clicking, or create shapes and lines from CSV coordinates</p>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="upload-section">
+                    <h3>📁 CSV Upload</h3>
+                    <div class="file-upload">
+                        <input type="file" id="csvFile" accept=".csv" onchange="handleFileUpload(event)">
+                        <label for="csvFile" class="file-upload-label">Choose CSV File</label>
+                    </div>
+                    <div class="upload-info">
+                        <strong>Supported formats:</strong><br>
+                        • <code>lat,lng</code> - Basic coordinates<br>
+                        • <code>lat,lng,name</code> - Named points<br>
+                        • <code>lat,lng,type</code> - Shape types<br>
+                        • <code>lat,lng,name,type</code> - Full format
+                    </div>
+                    
+                    <div class="shape-type-selector">
+                        <label>Default shape type:</label>
+                        <select id="defaultShapeType">
+                            <option value="polyline">Polyline (connected line)</option>
+                            <option value="polygon">Polygon (closed shape)</option>
+                            <option value="markers">Individual markers</option>
+                        </select>
+                    </div>
+
+                    <div class="color-picker">
+                        <div>
+                            <label>Fill:</label>
+                            <input type="color" id="fillColor" value="#3388ff">
+                        </div>
+                        <div>
+                            <label>Stroke:</label>
+                            <input type="color" id="strokeColor" value="#0066cc">
+                        </div>
+                    </div>
+
+                    <div id="csvPreview" class="csv-preview" style="display: none;"></div>
+                    <div id="uploadMessage"></div>
+                </div>
+
+                <div class="controls-section">
+                    <h3>🎯 Controls</h3>
+                    <button class="btn btn-secondary" onclick="clearAllMarkers()">Clear Markers</button>
+                    <button class="btn btn-secondary" onclick="clearAllShapes()">Clear Shapes</button>
+                    <button class="btn btn-danger" onclick="clearAll()">Clear Everything</button>
+                    <button class="btn btn-primary" onclick="exportData()">Export All Data</button>
+                </div>
+
+                <div class="stats">
+                    <h3>📊 Statistics</h3>
+                    <div><span>Markers:</span> <span id="markerCount">0</span></div>
+                    <div><span>Shapes:</span> <span id="shapeCount">0</span></div>
+                    <div><span>Total Points:</span> <span id="totalPoints">0</span></div>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <div class="map-header">
+                    <h3>🗺️ Interactive Map</h3>
+                    <span style="font-size: 14px; color: #666;">Click to add markers • Upload CSV for shapes</span>
+                </div>
+                
+                <div id="map">
+                    <div class="click-instruction">
+                        Click on the map to add markers
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script>
+        let map;
+        let markers = [];
+        let shapes = [];
+        let markerCount = 0;
+        let shapeCount = 0;
+
+        // Initialize the map
+        function initMap() {
+            map = L.map('map').setView([40.7128, -74.0060], 10); // New York City
+
+            // Add tile layer (OpenStreetMap)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Add click event listener
+            map.on('click', onMapClick);
+        }
+
+        // Handle map clicks for adding markers
+        function onMapClick(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            
+            // Create popup content for marker customization
+            const popupContent = `
+                <div class="popup-content">
+                    <h4 style="margin-bottom: 10px;">Add Marker</h4>
+                    <input type="text" class="popup-input" id="markerTitle" placeholder="Enter marker title..." maxlength="100">
+                    <textarea class="popup-input" id="markerDescription" placeholder="Enter description (optional)..." rows="3" maxlength="500"></textarea>
+                    <div>
+                        <button class="popup-btn popup-btn-save" onclick="saveMarker(${lat}, ${lng})">Save Marker</button>
+                        <button class="popup-btn popup-btn-cancel" onclick="map.closePopup()">Cancel</button>
+                    </div>
+                </div>
+            `;
+
+            L.popup()
+                .setLatLng([lat, lng])
+                .setContent(popupContent)
+                .openOn(map);
+
+            setTimeout(() => {
+                const titleInput = document.getElementById('markerTitle');
+                if (titleInput) titleInput.focus();
+            }, 100);
+        }
+
+        // Save individual marker
+        function saveMarker(lat, lng) {
+            const title = document.getElementById('markerTitle').value.trim();
+            const description = document.getElementById('markerDescription').value.trim();
+
+            if (!title) {
+                alert('Please enter a title for the marker.');
+                return;
+            }
+
+            const marker = L.marker([lat, lng]).addTo(map);
+            
+            let popupText = `<strong>${title}</strong>`;
+            if (description) {
+                popupText += `<br><p style="margin-top: 5px; font-size: 13px;">${description}</p>`;
+            }
+            popupText += `<br><small style="color: #666;">Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}</small>`;
+            popupText += `<br><button class="popup-btn" style="background: #dc3545; color: white; margin-top: 8px;" onclick="removeMarker(${markers.length})">Remove</button>`;
+
+            marker.bindPopup(popupText);
+
+            markers.push({
+                id: markers.length,
+                marker: marker,
+                lat: lat,
+                lng: lng,
+                title: title,
+                description: description
+            });
+
+            markerCount++;
+            updateStats();
+            map.closePopup();
+        }
+
+        // Handle CSV file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    parseCSVData(e.target.result);
+                } catch (error) {
+                    showMessage('Error reading file: ' + error.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Parse CSV data and create shapes/markers
+        function parseCSVData(csvText) {
+            Papa.parse(csvText, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    if (results.errors.length > 0) {
+                        showMessage('CSV parsing errors: ' + results.errors.map(e => e.message).join(', '), 'error');
+                        return;
+                    }
+
+                    processCSVData(results.data);
+                    showCSVPreview(results.data.slice(0, 5)); // Show first 5 rows
+                }
+            });
+        }
+
+        // Process parsed CSV data
+        function processCSVData(data) {
+            if (data.length === 0) {
+                showMessage('No data found in CSV file.', 'error');
+                return;
+            }
+
+            // Detect column names (case insensitive)
+            const headers = Object.keys(data[0]).map(h => h.toLowerCase());
+            const latCol = headers.find(h => h.includes('lat') || h === 'y' || h === 'latitude');
+            const lngCol = headers.find(h => h.includes('lng') || h.includes('lon') || h === 'x' || h === 'longitude');
+            const nameCol = headers.find(h => h.includes('name') || h.includes('title') || h.includes('label'));
+            const typeCol = headers.find(h => h.includes('type') || h.includes('shape') || h.includes('category'));
+
+            if (!latCol || !lngCol) {
+                showMessage('Could not find latitude and longitude columns. Expected columns like: lat, lng, latitude, longitude, x, y', 'error');
+                return;
+            }
+
+            // Convert data to coordinate arrays grouped by type
+            const groups = {};
+            const defaultType = document.getElementById('defaultShapeType').value;
+
+            data.forEach((row, index) => {
+                const originalHeaders = Object.keys(data[0]);
+                const latKey = originalHeaders.find(h => h.toLowerCase() === latCol);
+                const lngKey = originalHeaders.find(h => h.toLowerCase() === lngCol);
+                const nameKey = nameCol ? originalHeaders.find(h => h.toLowerCase() === nameCol) : null;
+                const typeKey = typeCol ? originalHeaders.find(h => h.toLowerCase() === typeCol) : null;
+
+                const lat = parseFloat(row[latKey]);
+                const lng = parseFloat(row[lngKey]);
+
+                if (isNaN(lat) || isNaN(lng)) {
+                    console.warn(`Invalid coordinates at row ${index + 1}: lat=${row[latKey]}, lng=${row[lngKey]}`);
+                    return;
+                }
+
+                const pointType = typeKey && row[typeKey] ? row[typeKey].toString().toLowerCase() : defaultType;
+                const pointName = nameKey && row[nameKey] ? row[nameKey].toString() : `Point ${index + 1}`;
+
+                if (!groups[pointType]) {
+                    groups[pointType] = [];
+                }
+
+                groups[pointType].push({
+                    lat: lat,
+                    lng: lng,
+                    name: pointName,
+                    index: index + 1
+                });
+            });
+
+            // Create shapes for each group
+            let totalCreated = 0;
+            Object.keys(groups).forEach(type => {
+                const points = groups[type];
+                if (points.length > 0) {
+                    createShapeFromPoints(points, type);
+                    totalCreated += points.length;
+                }
+            });
+
+            showMessage(`Successfully processed ${totalCreated} points and created ${Object.keys(groups).length} shape(s).`, 'success');
+            
+            // Auto-fit map to show all data
+            if (totalCreated > 0) {
+                const allLatLngs = Object.values(groups).flat().map(p => [p.lat, p.lng]);
+                const bounds = L.latLngBounds(allLatLngs);
+                map.fitBounds(bounds, { padding: [20, 20] });
+            }
+        }
+
+        // Create shapes from coordinate points
+        function createShapeFromPoints(points, type) {
+            const fillColor = document.getElementById('fillColor').value;
+            const strokeColor = document.getElementById('strokeColor').value;
+            const latLngs = points.map(p => [p.lat, p.lng]);
+
+            let shape;
+            const shapeOptions = {
+                color: strokeColor,
+                fillColor: fillColor,
+                fillOpacity: 0.3,
+                weight: 3
+            };
+
+            switch (type) {
+                case 'polygon':
+                    shape = L.polygon(latLngs, shapeOptions).addTo(map);
+                    break;
+                case 'polyline':
+                    shape = L.polyline(latLngs, { ...shapeOptions, fill: false }).addTo(map);
+                    break;
+                case 'markers':
+                default:
+                    // Create individual markers
+                    points.forEach(point => {
+                        const marker = L.marker([point.lat, point.lng]).addTo(map);
+                        const popupContent = `
+                            <strong>${point.name}</strong><br>
+                            <small>Lat: ${point.lat.toFixed(6)}, Lng: ${point.lng.toFixed(6)}</small><br>
+                            <button class="popup-btn" style="background: #dc3545; color: white; margin-top: 8px;" onclick="removeMarker(${markers.length})">Remove</button>
+                        `;
+                        marker.bindPopup(popupContent);
+                        
+                        markers.push({
+                            id: markers.length,
+                            marker: marker,
+                            lat: point.lat,
+                            lng: point.lng,
+                            title: point.name,
+                            description: `CSV import - Row ${point.index}`
+                        });
+                        markerCount++;
+                    });
+                    updateStats();
+                    return;
+            }
+
+            // Add popup for non-marker shapes
+            if (shape) {
+                const popupContent = `
+                    <strong>${type.charAt(0).toUpperCase() + type.slice(1)}</strong><br>
+                    Points: ${points.length}<br>
+                    <small>From CSV import</small><br>
+                    <button class="popup-btn" style="background: #dc3545; color: white; margin-top: 8px;" onclick="removeShape(${shapes.length})">Remove Shape</button>
+                `;
+                shape.bindPopup(popupContent);
+
+                shapes.push({
+                    id: shapes.length,
+                    shape: shape,
+                    type: type,
+                    points: points,
+                    options: shapeOptions
+                });
+                shapeCount++;
+            }
+
+            updateStats();
+        }
+
+        // Remove specific marker
+        function removeMarker(markerId) {
+            const markerData = markers[markerId];
+            if (markerData && markerData.marker) {
+                map.removeLayer(markerData.marker);
+                markers[markerId] = null;
+                markerCount--;
+                updateStats();
+                map.closePopup();
+            }
+        }
+
+        // Remove specific shape
+        function removeShape(shapeId) {
+            const shapeData = shapes[shapeId];
+            if (shapeData && shapeData.shape) {
+                map.removeLayer(shapeData.shape);
+                shapes[shapeId] = null;
+                shapeCount--;
+                updateStats();
+                map.closePopup();
+            }
+        }
+
+        // Clear all markers
+        function clearAllMarkers() {
+            if (markerCount === 0) {
+                alert('No markers to clear!');
+                return;
+            }
+
+            if (confirm(`Remove all ${markerCount} markers?`)) {
+                markers.forEach(markerData => {
+                    if (markerData && markerData.marker) {
+                        map.removeLayer(markerData.marker);
+                    }
+                });
+                markers = [];
+                markerCount = 0;
+                updateStats();
+            }
+        }
+
+        // Clear all shapes
+        function clearAllShapes() {
+            if (shapeCount === 0) {
+                alert('No shapes to clear!');
+                return;
+            }
+
+            if (confirm(`Remove all ${shapeCount} shapes?`)) {
+                shapes.forEach(shapeData => {
+                    if (shapeData && shapeData.shape) {
+                        map.removeLayer(shapeData.shape);
+                    }
+                });
+                shapes = [];
+                shapeCount = 0;
+                updateStats();
+            }
+        }
+
+        // Clear everything
+        function clearAll() {
+            const total = markerCount + shapeCount;
+            if (total === 0) {
+                alert('Nothing to clear!');
+                return;
+            }
+
+            if (confirm(`Remove all ${total} items from the map?`)) {
+                clearAllMarkers();
+                clearAllShapes();
+            }
+        }
+
+        // Export all data
+        function exportData() {
+            const activeMarkers = markers.filter(m => m !== null);
+            const activeShapes = shapes.filter(s => s !== null);
+
+            if (activeMarkers.length === 0 && activeShapes.length === 0) {
+                alert('No data to export!');
+                return;
+            }
+
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                summary: {
+                    markerCount: activeMarkers.length,
+                    shapeCount: activeShapes.length,
+                    totalPoints: activeMarkers.length + activeShapes.reduce((sum, s) => sum + (s.points ? s.points.length : 0), 0)
+                },
+                markers: activeMarkers.map(m => ({
+                    title: m.title,
+                    description: m.description,
+                    latitude: m.lat,
+                    longitude: m.lng
+                })),
+                shapes: activeShapes.map(s => ({
+                    type: s.type,
+                    pointCount: s.points ? s.points.length : 0,
+                    points: s.points ? s.points.map(p => ({
+                        name: p.name,
+                        latitude: p.lat,
+                        longitude: p.lng
+                    })) : []
+                }))
+            };
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'map-data-export.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Show CSV preview
+        function showCSVPreview(data) {
+            const preview = document.getElementById('csvPreview');
+            if (data.length === 0) {
+                preview.style.display = 'none';
+                return;
+            }
+
+            const headers = Object.keys(data[0]);
+            let previewText = headers.join(', ') + '\n';
+            previewText += '─'.repeat(50) + '\n';
+            
+            data.forEach(row => {
+                previewText += headers.map(h => row[h] || '').join(', ') + '\n';
+            });
+
+            if (data.length >= 5) {
+                previewText += '... (showing first 5 rows)';
+            }
+
+            preview.textContent = previewText;
+            preview.style.display = 'block';
+        }
+
+        // Show success/error messages
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('uploadMessage');
+            messageDiv.className = type === 'error' ? 'error-message' : 'success-message';
+            messageDiv.textContent = message;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Update statistics display
+        function updateStats() {
+            document.getElementById('markerCount').textContent = markerCount;
+            document.getElementById('shapeCount').textContent = shapeCount;
+            
+            const totalPoints = markerCount + shapes.filter(s => s !== null).reduce((sum, s) => {
+                return sum + (s.points ? s.points.length : 0);
+            }, 0);
+            document.getElementById('totalPoints').textContent = totalPoints;
+        }
+
+        // Initialize the map when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            updateStats();
+        });
+    </script>
+</body>
+</html>

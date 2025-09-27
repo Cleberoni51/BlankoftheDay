@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Map with Markers</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            /*font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;*/
+            margin: 0;
+            padding: 0;
+        }
+
+        h2, p {
+            margin: 10px;
+        }
+
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #38444d;
+        }
+
+        li {
+            float: left;
+        }
+
+        li a, .dropbtn {
+            display: inline-block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+            li a:hover, .dropdown:hover .dropbtn {
+              background-color: red;
+            }
+
+            li.dropdown {
+              display: inline-block;
+            }
+
+            .dropdown-content {
+              display: none;
+              position: absolute;
+              background-color: #f9f9f9;
+              min-width: 160px;
+              box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+              z-index: 1;
+            }
+
+            .dropdown-content a {
+              color: black;
+              padding: 12px 16px;
+              text-decoration: none;
+              display: block;
+              text-align: left;
+            }
+
+            .dropdown-content a:hover {
+                background-color: #3bc01a;
+            }
+
+            .dropdown:hover .dropdown-content {
+              display: block;
+            }
+
+            img {
+              float: right;
+              padding-right: 10px;
+            }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .map-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .controls {
+            padding: 20px;
+            background: linear-gradient(90deg, #f8f9fa, #e9ecef);
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .marker-count {
+            background: rgba(255,255,255,0.9);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        #map {
+            height: 600px;
+            width: 100%;
+            position: relative;
+        }
+
+        .leaflet-popup-content-wrapper {
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .popup-content {
+            min-width: 200px;
+        }
+
+        .popup-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .popup-btn {
+            padding: 6px 12px;
+            margin-right: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s;
+        }
+
+        .popup-btn-save {
+            background: #28a745;
+            color: white;
+        }
+
+        .popup-btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .popup-btn:hover {
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-group {
+                justify-content: center;
+            }
+
+            #map {
+                height: 500px;
+            }
+        }
+
+        .click-instruction {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.95);
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 14px;
+            color: #495057;
+            z-index: 1000;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-container">   
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li class="dropdown">
+                <a href="Portfolio.html" class="dropbtn">Portfolio</a>
+                <div class="dropdown-content">
+                    <a href="Portfolio_One.html">World Trade</a>
+                    <a href="Portfolio_Two.html">Big Map</a>
+                    <a href="Portfolio_Three.html">Big Map2</a>
+                </div>
+            </li>
+            <li><a href="Blank.html">Blank of the Day</a></li>
+            <li><a href="Contact.html">Contact</a></li>
+            <img src="C:\Users\caleb\Desktop\ResearchDevelopment\02-Code\05-WebApps\site-content\images\CSElectronicsLogo_Transparent.png" alt="homeImage"><a href="index.html" style="width:50px;height:50px;"></a></a></img>
+        </ul>
+    </div>
+    <div class="bod">
+        <h1>World Trade</h1>
+        <p>This page displays current Tariffs, Duties and Excise Taxes on all products imported.  <br>It will then show the cost changes for different products over time.  </p>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>Interactive Marker Map</h1>
+            <p>Click anywhere on the map to add custom markers</p>
+        </div>
+
+        <div class="map-container">
+            <div class="controls">
+                <div class="control-group">
+                    <button class="btn btn-secondary" onclick="clearAllMarkers()">Clear All Markers</button>
+                    <button class="btn btn-primary" onclick="exportMarkers()">Export Markers</button>
+                </div>
+                <div class="marker-count">
+                    <span id="markerCount">0</span> markers placed
+                </div>
+            </div>
+            
+            <div id="map">
+                <div class="click-instruction">
+                    Click on the map to add a marker
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script>
+        let map;
+        let markers = [];
+        let markerCount = 0;
+
+        // Initialize the map
+        function initMap() {
+            map = L.map('map').setView([40.7128, -74.0060], 10); // New York City
+
+            // Add tile layer (OpenStreetMap)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Add click event listener
+            map.on('click', onMapClick);
+        }
+
+        // Handle map clicks
+        function onMapClick(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            
+            // Create popup content for marker customization
+            const popupContent = `
+                <div class="popup-content">
+                    <h4 style="margin-bottom: 10px;">Add Marker</h4>
+                    <input type="text" class="popup-input" id="markerTitle" placeholder="Enter marker title..." maxlength="100">
+                    <textarea class="popup-input" id="markerDescription" placeholder="Enter description (optional)..." rows="3" maxlength="500"></textarea>
+                    <div>
+                        <button class="popup-btn popup-btn-save" onclick="saveMarker(${lat}, ${lng})">Save Marker</button>
+                        <button class="popup-btn popup-btn-cancel" onclick="map.closePopup()">Cancel</button>
+                    </div>
+                </div>
+            `;
+
+            // Create temporary popup
+            L.popup()
+                .setLatLng([lat, lng])
+                .setContent(popupContent)
+                .openOn(map);
+
+            // Focus on the title input after a short delay
+            setTimeout(() => {
+                const titleInput = document.getElementById('markerTitle');
+                if (titleInput) titleInput.focus();
+            }, 100);
+        }
+
+        // Save marker with user input
+        function saveMarker(lat, lng) {
+            const title = document.getElementById('markerTitle').value.trim();
+            const description = document.getElementById('markerDescription').value.trim();
+
+            if (!title) {
+                alert('Please enter a title for the marker.');
+                return;
+            }
+
+            // Create the marker
+            const marker = L.marker([lat, lng]).addTo(map);
+            
+            // Create popup content for the saved marker
+            let popupText = `<strong>${title}</strong>`;
+            if (description) {
+                popupText += `<br><p style="margin-top: 5px; font-size: 13px;">${description}</p>`;
+            }
+            popupText += `<br><small style="color: #666;">Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}</small>`;
+            popupText += `<br><button class="popup-btn" style="background: #dc3545; color: white; margin-top: 8px;" onclick="removeMarker(${markers.length})">Remove Marker</button>`;
+
+            marker.bindPopup(popupText);
+
+            // Store marker data
+            markers.push({
+                id: markers.length,
+                marker: marker,
+                lat: lat,
+                lng: lng,
+                title: title,
+                description: description
+            });
+
+            markerCount++;
+            updateMarkerCount();
+            map.closePopup();
+        }
+
+        // Remove specific marker
+        function removeMarker(markerId) {
+            const markerData = markers[markerId];
+            if (markerData && markerData.marker) {
+                map.removeLayer(markerData.marker);
+                markers[markerId] = null; // Mark as removed but keep index
+                markerCount--;
+                updateMarkerCount();
+                map.closePopup();
+            }
+        }
+
+        // Clear all markers
+        function clearAllMarkers() {
+            if (markers.length === 0) {
+                alert('No markers to clear!');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to remove all ${markerCount} markers?`)) {
+                markers.forEach(markerData => {
+                    if (markerData && markerData.marker) {
+                        map.removeLayer(markerData.marker);
+                    }
+                });
+                markers = [];
+                markerCount = 0;
+                updateMarkerCount();
+            }
+        }
+
+        // Export markers data
+        function exportMarkers() {
+            if (markers.length === 0) {
+                alert('No markers to export!');
+                return;
+            }
+
+            const activeMarkers = markers.filter(m => m !== null);
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                markerCount: activeMarkers.length,
+                markers: activeMarkers.map(m => ({
+                    title: m.title,
+                    description: m.description,
+                    latitude: m.lat,
+                    longitude: m.lng
+                }))
+            };
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'map-markers.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Update marker count display
+        function updateMarkerCount() {
+            document.getElementById('markerCount').textContent = markerCount;
+        }
+
+        // Initialize the map when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+        });
+    </script>
+</body>
+</html>
